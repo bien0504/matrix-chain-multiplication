@@ -1,20 +1,17 @@
 import random
-with open('input.txt', 'r') as file:
-    data = file.read().split(',')
-    data = [int(num) for num in data]
-    n = len(data)
-A = [[data[i], data[i+1]] for i in range(0, n-1)]
-print("A:",A)
+import copy
+import get_data
+
 class Individual:
     def __init__(self, chromosome_length):
         self.chromosome = random.sample(range(1, chromosome_length +1), chromosome_length )
-        self.fitness=self.evaluate_fitness()
-    def get_fitness(self):
-        return self.fitness
-    def evaluate_fitness(self):
+    def evaluate_fitness(self,data):
+        data = [int(num) for num in data]
+        A = [[data[i], data[i + 1]] for i in range(0, len(data) - 1)]
+        n = len(data)
         fitness=0
-        B=[]
-        B=A.copy()
+        B = copy.deepcopy(A)
+        # print("B=:",B)
         contracted=[[0]*len(B) for _ in range(len(B))]
         for i in self.chromosome:
             fitness -= B[i - 1][0] * B[i - 1][1] * B[i][1]
@@ -29,9 +26,7 @@ class Individual:
             while(index<len(B)-1 and contracted[index][index+1]==1):
                 index = index + 1
                 B[index]=B[index-1]
-        print("fitness of",self.chromosome,"=",fitness)
-        if(fitness==-392):
-            print( self.chromosome)
+            self.fitness=fitness
         return fitness
     def crossover(self, other):
         child = Individual(chromosome_length)
@@ -56,14 +51,15 @@ class Population:
     def __init__(self, size, chromosome_length):
         # print("init:",chromosome_length )
         self.individuals = [Individual(chromosome_length) for _ in range(size)]
+        print("indvs :")
         for idv in self.individuals:
             print(idv.chromosome)
-    # def evaluate_population(self):
-        # for individual in self.individuals:
-        #     individual.evaluate_fitness()
-        # return
+    def evaluate_population(self):
+        for individual in self.individuals:
+            individual.evaluate_fitness(data)
+        return
     def selection(self):
-        sorted_individuals = sorted(self.individuals, key=lambda x: x.get_fitness(), reverse=True)
+        sorted_individuals = sorted(self.individuals, key=lambda x: x.evaluate_fitness(data), reverse=True)
         return sorted_individuals[0], sorted_individuals[1]
     def evolve(self, mutation_rate):
         new_generation = []
@@ -73,24 +69,27 @@ class Population:
             child.mutate()
             new_generation.extend([child])
         self.individuals = new_generation
-if __name__ == "__main__":
 
-    population_size = 2
-    chromosome_length = n-2
-    mutation_rate = 0.0
-    num_generations = 1
-    population = Population(population_size, chromosome_length) # khởi tạo quẩn thể ban đầu
+def solve(data,population_size,chromosome_length,mutation_rate,num_generations):
+    print("data:", data)
+    population = Population(population_size, chromosome_length)  # khởi tạo quẩn thể ban đầu
     for generation in range(num_generations):
-        # population.evaluate_population()
-        best_individual = max(population.individuals, key=lambda x: x.get_fitness()) # chọn cá thể tốt nhất đàn
-        print(f"Generation {generation + 1}: Best fitness = {best_individual.get_fitness()}, Chromosome = {best_individual.chromosome}")
+        population.evaluate_population()
+        best_individual = max(population.individuals, key=lambda x: x.evaluate_fitness(data)) # chọn cá thể tốt nhất đàn
+        print(f"Generation {generation + 1}: Best fitness = {best_individual.evaluate_fitness(data)}, Chromosome = {best_individual.chromosome}")
         population.evolve(mutation_rate)
-    best_individual = max(population.individuals, key=lambda x: x.get_fitness())
+    best_individual = max(population.individuals, key=lambda x: x.evaluate_fitness(data))
     print("population:",len(population.individuals))
     for indv in population.individuals:
         print("fitness:",indv.chromosome,indv.fitness)
 
     print(f"Final result: Best fitness = {best_individual.fitness}, Chromosome = {best_individual.chromosome}")
-    test=Individual(4)
-    print(test.chromosome)
-    print(test.fitness)
+if __name__ == "__main__":
+    data=get_data.get_data()
+
+    population_size=10
+    chromosome_length=len(data)-2
+    mutation_rate=0.1
+    num_generations=1
+
+    solve(data, population_size, chromosome_length, mutation_rate, num_generations)

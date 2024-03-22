@@ -1,7 +1,7 @@
 import random
 
 def init_random_data(n, a, b, filename='input.txt'):
-    """Initialize random data and save it to a file."""
+    """Initialize random data and save it to the file."""
     random_numbers = [random.randint(a, b) for _ in range(n)]
     random_numbers_str = ",".join(map(str, random_numbers))
     with open(filename, 'w') as file:

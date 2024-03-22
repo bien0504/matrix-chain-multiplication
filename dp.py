@@ -1,8 +1,10 @@
 import get_data
+import time
 int_max = float('inf')
-
+# start=time.time()
 def solve(data):
     """Dynamic Programming approach for Matrix Chain Multiplication."""
+    start_time=time.time()
     n = len(data)
     s = [[0] * n for _ in range(n + 1)]  # index
     m = [[0] * n for _ in range(n + 1)]  # cost A[i:j]
@@ -21,8 +23,9 @@ def solve(data):
                 if q < m[i][j]:
                     m[i][j] = q  # remember this cost
                     s[i][j] = k  # remember this index
+    dptime=time.time()-start_time
     print("result of dp algorithm:",m[1][n - 1])
-    return m[1][n - 1], result(s, 1, n - 1)
+    return m[1][n - 1], dptime,result(s, 1, n - 1)
 
 def result(s, i, j):
     """Constructs the optimal parenthesization."""
@@ -44,6 +47,7 @@ def result(s, i, j):
 if __name__ == "__main__":
     data=get_data.get_data()
     print(data)
-    cost,order=solve(data)
+    cost,ptime,order=solve(data)
     print(cost)
+    print(ptime)
     print(order)
