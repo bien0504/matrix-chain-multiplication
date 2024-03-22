@@ -31,36 +31,36 @@ class Individual:
     def crossover(self, other):
         child = Individual(chromosome_length)
         child.chromosome = [0 for _ in range(chromosome_length)]
-        # print(child.chromosome)
-        parent1_index = 0
-        parent2_index = 0
-        for i in range(len(self.chromosome)):
-            if(i%2==0):
-                while self.chromosome[parent1_index] in child.chromosome :
-                     parent1_index+=1
-                child.chromosome[i]=self.chromosome[parent1_index]
-            else:
-                while self.chromosome[parent2_index] in child.chromosome:
-                     parent2_index+=1
-                child.chromosome[i]=other.chromosome[parent2_index]
+
+        new_chromosome = [item for pair in zip(self.chromosome, other.chromosome) for item in pair]
+        print("new_chromosome:",new_chromosome)
+        index = len(new_chromosome) - 1
+        for i in range(len(self.chromosome)-1,-1,-1):
+            while(new_chromosome[index] in child.chromosome):
+                    index-=1
+            child.chromosome[i]= int(new_chromosome[index])
+        print("child chromosome: ",child.chromosome)
 
         return child
     def mutate(self):
-        self.chromosome = self.chromosome[::-1]
+        temp = self.chromosome[1]
+        self.chromosome[1]=self.chromosome[0]
+        self.chromosome[0]=temp
 class Population:
     def __init__(self, size, chromosome_length):
         # print("init:",chromosome_length )
         self.individuals = [Individual(chromosome_length) for _ in range(size)]
-        print("indvs :")
-        for idv in self.individuals:
-            print(idv.chromosome)
+        # print("indvs :")
+        # for idv in self.individuals:
+        #     print(idv.chromosome)
     def evaluate_population(self):
         for individual in self.individuals:
             individual.evaluate_fitness(data)
         return
     def selection(self):
         sorted_individuals = sorted(self.individuals, key=lambda x: x.evaluate_fitness(data), reverse=True)
-        return sorted_individuals[0], sorted_individuals[1]
+        select_index=random.sample(range(0,len(self.individuals)//2), chromosome_length )
+        return sorted_individuals[select_index[0]], sorted_individuals[select_index[1]]
     def evolve(self, mutation_rate):
         new_generation = []
         while len(new_generation) < len(self.individuals):
@@ -68,28 +68,43 @@ class Population:
             child = parent1.crossover(parent2)
             child.mutate()
             new_generation.extend([child])
-        self.individuals = new_generation
+        self.individuals.extend(new_generation)
+        self.individuals= sorted(self.individuals, key=lambda x: x.evaluate_fitness(data), reverse=True)
+        self.individuals= self.individuals[:population_size]
+        # for indv in self.individuals:
+        #     print(indv.chromosome)
+
 
 def solve(data,population_size,chromosome_length,mutation_rate,num_generations):
     print("data:", data)
     population = Population(population_size, chromosome_length)  # khởi tạo quẩn thể ban đầu
+    print("Khoi tao quan the ban dau ")
+    for indv in population.individuals:
+        print(indv.chromosome)
     for generation in range(num_generations):
+        print("generation ",generation+1)
         population.evaluate_population()
+        print("Danh gia quan the da xong ")
         best_individual = max(population.individuals, key=lambda x: x.evaluate_fitness(data)) # chọn cá thể tốt nhất đàn
+        print("chọn xong cá thể tốt nhất")
         print(f"Generation {generation + 1}: Best fitness = {best_individual.evaluate_fitness(data)}, Chromosome = {best_individual.chromosome}")
         population.evolve(mutation_rate)
+        print("da chon xong quan the moi,quan the moi:")
+        for indv in population.individuals:
+            print(indv.chromosome)
+    print("đã xong thuật toán thu đc kết quá :")
     best_individual = max(population.individuals, key=lambda x: x.evaluate_fitness(data))
-    print("population:",len(population.individuals))
+    # print("population:",len(population.individuals))
     for indv in population.individuals:
         print("fitness:",indv.chromosome,indv.fitness)
 
     print(f"Final result: Best fitness = {best_individual.fitness}, Chromosome = {best_individual.chromosome}")
 if __name__ == "__main__":
     data=get_data.get_data()
-
     population_size=10
     chromosome_length=len(data)-2
     mutation_rate=0.1
-    num_generations=1
+    num_generations=2
 
     solve(data, population_size, chromosome_length, mutation_rate, num_generations)
+#to do: code lại hàm crossover
